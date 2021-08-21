@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+
+    <script type="text/javascript" src="/libs/jquery/jquery-3.2.1.js"></script>
+
+    <style>
+        /* flex布局不按比例缩放问题：https://www.cnblogs.com/Sky-Ice/p/9591321.html */
+
+        /* 清除浏览器自带样式 */
+        ul,
+        li {
+            padding: 0;
+            margin: 0;
+            list-style: none
+        }
+
+        /* 美化input输入框 */
+        input {
+            width: 20%;
+            font-size: 20px;
+            border: 1px solid #ccc;
+            padding: 7px 0px;
+            border-radius: 3px;
+            padding-left: 5px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+            -webkit-transition: border-color ease-in-out .15s, -webkit-box-shadow ease-in-out .15s;
+            -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+            transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s
+        }
+
+        input:focus {
+            border-color: #66afe9;
+            outline: 0;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075), 0 0 8px rgba(102, 175, 233, .6)
+        }
+
+
+        /*整个页面*/
+        html {
+            height: 100%
+        }
+
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            display: flex;
+            font-size: 24px;
+            background: #121212;
+            color: ghostwhite
+        }
+
+        /*居中对齐*/
+        #div_left>div,
+        #div_right>.top,
+        #div_right>.bottom>div {
+            border-radius: 10px;
+            background: #636060;
+        }
+
+        /*左边：购物车列表<span class="addamount_btn">+</span>收银按钮*/
+        #div_left {
+            width: 60%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #div_left>div {
+            display: flex;
+            flex-basis: 0;
+            align-items: center;
+        }
+
+        #div_left>.top {
+            flex-basis: 50px;
+            justify-content: center;
+            justify-content: space-between;
+            margin: 15px;
+            padding: 10px;
+        }
+
+        #div_left>.center {
+            flex-grow: 10;
+            margin: 0 15px;
+            overflow-y: auto;
+        }
+
+        #div_left>.bottom {
+            flex-basis: 70px;
+            justify-content: space-between;
+            margin: 15px;
+            padding: 0 10px;
+        }
+
+        /* #div_left>.bottom{flex-grow: 1;}
+        #div_left>.bottom>.centen_div{width: 97%; height: 74%; justify-content: space-around;} */
+        /*右边：搜索栏<span class="addamount_btn">+</span>商品tab*/
+        #div_right {
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #div_right>.top {
+            flex-basis: 50px;
+            display: flex;
+            align-items: center;
+            margin: 15px 15px 15px 0;
+            padding: 10px;
+        }
+
+        #div_right>.bottom {
+            flex-grow: 11;
+            flex-basis: 0;
+            display: flex;
+            margin: 0 15px 15px 0;
+            overflow-y: auto;
+        }
+
+
+        #div_right>.bottom>.left {
+            flex-grow: 4;
+            flex-basis: 0;
+            margin-right: 15px;
+            overflow-y: auto;
+        }
+
+        #div_right>.bottom>.right {
+            flex-grow: 1;
+            flex-basis: 0;
+            display: flex;
+        }
+
+        /* 取消交易按钮 */
+        #cancelOrderBtn {
+            cursor: pointer;
+            color: orangered;
+        }
+
+        /* 挂单按钮 */
+        #gdBtn {
+            width: 38%;
+            height: 74%;
+            border: 0;
+            border-radius: 10px;
+            background-color: orange;
+            color: white;
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 收银按钮 */
+        #syBtn {
+            width: 58%;
+            height: 80%;
+            border: 0;
+            border-radius: 10px;
+            background-color: #c83935;
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* 购物车 & 商品 */
+        .img {
+            background: white;
+            height: 70px;
+            width: 70px;
+        }
+
+        .shopping_car_list {
+            width: 100%;
+            height: 100%;
+        }
+
+        .shopping_car_item {
+            display: flex;
+            flex-direction: row;
+            align-items: flex-end;
+            padding: 10px;
+            border-bottom: 1px white solid
+        }
+
+        .shopping_car_item .good_img {
+            width: 0px;
+            flex-basis: 100px;
+            border-radius: 10px;
+        }
+
+        .shopping_car_item>.good_msg {
+            flex-grow: 4;
+            padding: 0 10px;
+        }
+
+        .shopping_car_item>.good_amount {
+            flex-grow: 1;
+            text-align: center;
+        }
+
+        .shopping_car_item>.good_amount input {
+            width: 110px;
+            height: 20px;
+        }
+
+        .shopping_car_item>.total_money {
+            flex-grow: 1;
+            text-align: right;
+        }
+
+        .addamount_btn,
+        .subamount_btn {
+            cursor: pointer;
+        }
+
+        .delete_btn {
+            cursor: pointer;
+        }
+
+        /* 查询 */
+        .query label {
+            margin: 0 10px 0 20px;
+        }
+
+        /* tab */
+        .tab {
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .tab label {
+            width: 100%;
+            height: 50px;
+            line-height: 50px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .tab label[class=active] {
+            background-color: orange;
+            font-weight: bold;
+        }
+
+        /* 商品列表 */
+        .good_list>li {
+            display: flex;
+            padding: 10px;
+            border-bottom: 1px solid white;
+        }
+
+        .good_div {
+            flex-basis: 50%;
+            display: flex;
+            cursor: pointer;
+        }
+
+        .good_div img {
+            width: 0px;
+            flex-basis: 100px;
+            border-radius: 10px;
+        }
+
+        .good_div .good_msg {
+            flex: 1;
+            margin-left: 10px;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="div_left">
+        <div class="top">
+            <span>购物车列表（共XX件商品）</span>
+            <span id="cancelOrderBtn">取消交易</span>
+        </div>
+        <div class="center">
+            <ul class="shopping_car_list">
+                <li class="shopping_car_item">
+                    <img class="good_img" src="./img.jpg">
+                    <ul class="good_msg">
+                        <li>商品名</li>
+                        <li>xxx</li>
+                        <li>xxx</li>
+                    </ul>
+                    <div class="good_amount">
+                        <span class="subamount_btn">-</span>
+                        <input type="text" />
+                        <span class="addamount_btn">+</span>
+                    </div>
+                    <div class="total_money">
+                        <span class="delete_btn">删除</span><br /><br />
+                        16元
+                    </div>
+                </li>
+                <li class="shopping_car_item">
+                    <img class="good_img" src="./img.jpg">
+                    <ul class="good_msg">
+                        <li>商品名</li>
+                        <li>xxx</li>
+                        <li>xxx</li>
+                    </ul>
+                    <div class="good_amount">
+                        <span class="subamount_btn">-</span>
+                        <input type="text" />
+                        <span class="addamount_btn">+</span>
+                    </div>
+                    <div class="total_money">
+                        <span class="delete_btn">删除</span><br /><br />
+                        16元
+                    </div>
+                </li>
+                <li class="shopping_car_item">
+                    <img class="good_img" src="./img.jpg">
+                    <ul class="good_msg">
+                        <li>商品名</li>
+                        <li>xxx</li>
+                        <li>xxx</li>
+                    </ul>
+                    <div class="good_amount">
+                        <span class="subamount_btn">-</span>
+                        <input type="text" />
+                        <span class="addamount_btn">+</span>
+                    </div>
+                    <div class="total_money">
+                        <span class="delete_btn">删除</span><br /><br />
+                        16元
+                    </div>
+                </li>
+                <li class="shopping_car_item">
+                    <img class="good_img" src="./img.jpg">
+                    <ul class="good_msg">
+                        <li>商品名</li>
+                        <li>xxx</li>
+                        <li>xxx</li>
+                    </ul>
+                    <div class="good_amount">
+                        <span class="subamount_btn">-</span>
+                        <input type="text" />
+                        <span class="addamount_btn">+</span>
+                    </div>
+                    <div class="total_money">
+                        <span class="delete_btn">删除</span><br /><br />
+                        16元
+                    </div>
+                </li>
+            </ul>
+        </div>
+        <div class="bottom">
+            <button id="gdBtn">挂单</button>
+            <button id="syBtn">收银</button>
+        </div>
+    </div>
+    <div id="div_right">
+        <div class="top query">
+            <label>商品名</label>
+            <input type="text" name="where_su.cname_like">
+
+            <label>条形码</label>
+            <input type="text" name="where_su.cname_like">
+        </div>
+        <div class="bottom">
+            <div class="left tab_div">
+                <ul class="good_list">
+                    <li>
+                        <div class="good_div">
+                            <img class="good_img" src="./img.jpg">
+                            <ul class="good_msg">
+                                <li>商品名</li>
+                                <li>xxx</li>
+                                <li>xxx</li>
+                            </ul>
+                        </div>
+                        <div class="good_div">
+                            <img class="good_img" src="./img.jpg">
+                            <ul class="good_msg">
+                                <li>商品名</li>
+                                <li>xxx</li>
+                                <li>xxx</li>
+                            </ul>
+                        </div>
+                    </li>
+                    <li>
+                        <div class="good_div">
+                            <img class="good_img" src="./img.jpg">
+                            <ul class="good_msg">
+                                <li>商品名</li>
+                                <li>xxx</li>
+                                <li>xxx</li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+            <div class="right tab">
+                <label>面</label>
+                <label>油</label>
+                <label class="active">酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+                <label>油</label>
+                <label>酸酸</label>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
