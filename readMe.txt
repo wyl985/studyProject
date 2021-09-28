@@ -1,0 +1,4 @@
+目录结构说明
+studyElasticSearch下有以下文件夹
+app：后端代码
+vue：前端代码
